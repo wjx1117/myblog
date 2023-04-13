@@ -35,7 +35,8 @@ router.post('/_token/add', async (req, res) => {
   if(err == null){
     res.send({
       code: 200,
-      msg : '添加成功'
+      msg : '添加成功',
+      rows
     })
   } else {
     res.send({

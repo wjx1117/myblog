@@ -7,6 +7,7 @@ router.post('/login',async (req, res) => {
   let { account, password} = req.body
   let { err, rows} = await db.async.query('select * from admin where account=? and password=?', [account, password])
 
+  console.log(req.body);
   // console.log(rows);
   if(err == null && rows.length > 0){
     // 成功找到用户数据
@@ -29,7 +30,10 @@ router.post('/login',async (req, res) => {
   }else {
     res.send({
       code : 500,
-      msg : '登陆失败'
+      msg : '登陆失败',
+      err,
+      length : rows.length,
+      data : rows
     })
   }
 })

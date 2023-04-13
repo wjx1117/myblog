@@ -30,15 +30,16 @@ router.post('/_token/add', async (req, res) => {
 // 修改博客
 router.put('/_token/update', async (req, res) => {
   let { id, title, category_id, content} = req.body
-
+console.log(id, title, category_id, content);
   const update_sql = "update blog set title=?, category_id=?, content=? where id=?"
   let params = [title, category_id, content, id]
   let { err, rows} = await db.async.query(update_sql, params)
-
+// console.log(err);
   if(err == null){
     res.send({
       code: 200,
-      msg : '修改成功'
+      msg : '修改成功',
+      rows
     })
   } else {
     res.send({
@@ -67,6 +68,28 @@ router.delete('/_token/delete', async (req, res) => {
   }
 })
 
+
+//查询单篇文章
+router.get('/detail', async (req, res) => {
+  console.log(req.query);
+  let {id} = req.query
+  const detail_sql = 'select * from blog where id =?'
+  let {err, rows} = await db.async.query(detail_sql, [id])
+// console.log(rows);
+  if(err == null){
+    res.send({
+      code: 200,
+      msg : '查询成功',
+      rows
+    })
+  } else {
+    res.send({
+      code : 500,
+      msg : '查询失败'
+    })
+  }
+})
+
 // 查询博客
 /**
  * keyword  关键字
@@ -80,9 +103,11 @@ router.get('/search', async (req, res) => {
 
   // 进行判断 前端不用必须传值
   page = page == null ? 1 : page
-  page_size = page_size == null ? 10 : page_size
+  page_size = page_size == null ? 10 : parseInt(page_size)
+  // page_size = page_size == null ? 10 : page_size
   keyword = keyword == null ? '' : keyword
   category_id = category_id == null ? 0 : category_id
+  // console.log(typeof page_size);
 
   // 组装 where 条件
   let where_sqls = []
@@ -110,7 +135,8 @@ router.get('/search', async (req, res) => {
   // 组装完: where category_id = ? and (title like ? or content like ?)
 
   // 查分页数据
-  let search_sql = 'select * from blog' + where_sql_str + " order by create_time desc limit ?,?"
+  // let search_sql = 'select * from blog' + where_sql_str + " order by create_time desc limit ?,?"
+  let search_sql = 'SELECT `id`, `category_id`, `title`, `create_time`, substring(`content`,1,50) AS `content` FROM blog ' + where_sql_str + " ORDER BY `create_time` DESC LIMIT ?,?"
   let search_params = params.concat((page - 1) * page_size, page_size)
   // 使用 LIMIT 属性来设定返回的记录数  limit通常用来实现分页  从几开始，取几个  
   // 如果是 第 2 页  每页 10 条数据
@@ -141,6 +167,7 @@ router.get('/search', async (req, res) => {
       }
     })
   } else {
+    console.log(search.err,count.err);
     res.send({
       code: 500,
       msg : '查询失败'

@@ -16,7 +16,7 @@ app.use(function (req, res, next) {
   // 允许的header类型
   res.header("Access-Control-Allow-Headers", "*");
   // 跨域允许的请求方式
-  // res.header("Access-C ontrol-Allow-Methods", "DELETE,PUT,POST,GET,OPTIONS");
+  res.header("Access-Control-Allow-Methods", "DELETE,PUT,POST,GET,OPTIONS");
   if(req.method == "OPTIONS") res.sendStatus(200);  // 让options尝试请求快速结束
   else next();
 });
@@ -42,6 +42,7 @@ const ADMIN_TOKEN_PATH = "/_token"
 app.all("*", async (req, res, next) => {
   if(req.path.indexOf(ADMIN_TOKEN_PATH) > -1) {
     let {token} = req.headers
+    // let token = request.META.get("HTTP_AUTHORIZATION")
 
     let admin_token_sql = "select * from admin where token = ?"
     let admin_res = await db.async.query(admin_token_sql, [token])
